@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Study Manager</title>
     <meta name="google-site-verification" content="6ruT6scFgJ0GmMZDy8yjmnIbeno4w5x3h0LmpGsPnL4" />
-    <!-- Google API for Sheets integration (optional) -->
-    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <!-- Google Identity Services (required for Sign in + Sheets); replaces deprecated gapi.auth2 -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
     <div id="root"></div>

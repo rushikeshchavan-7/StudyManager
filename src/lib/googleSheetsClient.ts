@@ -1,75 +1,63 @@
 /**
- * Google Sheets API v4 client for tasks.
- * Uses gapi (loaded via script). OAuth 2.0 + batch operations.
- * Declare gapi on window for TypeScript.
+ * Google Sheets API v4 via REST + Google Identity Services (GIS) OAuth2.
+ * Uses the token model (initTokenClient / requestAccessToken) instead of deprecated gapi.auth2.
+ * @see https://developers.google.com/identity/oauth2/web/guides/use-token-model
+ * @see https://developers.google.com/identity/gsi/web/guides/gis-migration
  */
 
 import { SHEET_COLUMNS, SHEET_NAME } from '@/utils/constants'
 import type { Task } from '@/types/task'
 
+const SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets'
+
+/** GIS token client callback response */
+interface TokenResponse {
+  access_token: string
+  expires_in: number
+  scope?: string
+  error?: string
+}
+
 declare global {
   interface Window {
-    gapi?: {
-      load: (name: string, callback: () => void) => void
-      client: {
-        init: (config: {
-          apiKey: string
-          clientId: string
-          discoveryDocs: string[]
-          scope: string
-        }) => Promise<void>
-        getToken: () => unknown
-        setToken: (token: { access_token: string }) => void
-        sheets: {
-          spreadsheets: {
-            values: {
-              get: (params: {
-                spreadsheetId: string
-                range: string
-              }) => Promise<{ result: { values?: string[][] } }>
-              append: (params: {
-                spreadsheetId: string
-                range: string
-                valueInputOption: string
-                resource: { values: string[][] }
-              }) => Promise<unknown>
-              update: (params: {
-                spreadsheetId: string
-                range: string
-                valueInputOption: string
-                resource: { values: string[][] }
-              }) => Promise<unknown>
-              batchUpdate: (params: {
-                spreadsheetId: string
-                resource: {
-                  valueInputOption: string
-                  data: Array<{ range: string; values: string[][] }>
-                }
-              }) => Promise<unknown>
-              clear: (params: { spreadsheetId: string; range: string }) => Promise<unknown>
-            }
-          }
-        }
-      }
-      auth2: {
-        getAuthInstance: () => {
-          isSignedIn: { get: () => boolean }
-          signIn: () => Promise<unknown>
-          signOut: () => Promise<void>
-          currentUser: { get: () => { getAuthResponse: () => { access_token: string } } }
+    google?: {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config: {
+            client_id: string
+            scope: string
+            callback: (response: TokenResponse) => void
+          }) => { requestAccessToken: (options?: { prompt?: string }) => void }
         }
       }
     }
   }
 }
 
-const DISCOVERY_DOC = 'https://sheets.googleapis.com/$discovery/rest?version=v4'
-const SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
-
 function getEnv(key: string): string {
   const v = import.meta.env[key]
   if (typeof v !== 'string' || !v) throw new Error(`Missing env: ${key}`)
   return v
+}
+
+/** In-memory and sessionStorage token (GIS does not provide refresh in token model; user re-signs when expired) */
+let accessToken: string | null = null
+const TOKEN_KEY = 'study_manager_google_token'
+
+function persistToken(token: string | null): void {
+  accessToken = token
+  if (typeof sessionStorage !== 'undefined') {
+    if (token) sessionStorage.setItem(TOKEN_KEY, token)
+    else sessionStorage.removeItem(TOKEN_KEY)
+  }
+}
+
+function loadStoredToken(): void {
+  if (typeof sessionStorage !== 'undefined') {
+    const stored = sessionStorage.getItem(TOKEN_KEY)
+    if (stored) accessToken = stored
+  }
 }
 
 /** Convert Task to sheet row (array of 12 strings) */
@@ -110,50 +98,75 @@ export function rowToTask(row: string[]): Task {
   }
 }
 
-/** Initialize Google API client (call once after script load) */
-export async function initGoogleAPI(): Promise<void> {
-  const apiKey = getEnv('VITE_GOOGLE_API_KEY')
-  const clientId = getEnv('VITE_GOOGLE_CLIENT_ID')
-  if (!window.gapi) throw new Error('Google API script not loaded')
-  return new Promise((resolve, reject) => {
-    window.gapi!.load('client:auth2', () => {
-      window
-        .gapi!.client.init({
-          apiKey,
-          clientId,
-          discoveryDocs: [DISCOVERY_DOC],
-          scope: SCOPE,
-        })
-        .then(resolve)
-        .catch(reject)
-    })
+/** Ensure GIS script is loaded and restore token from session if any */
+export function initGoogleAPI(): Promise<void> {
+  loadStoredToken()
+  try {
+    if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) return Promise.resolve()
+  } catch {
+    return Promise.resolve()
+  }
+  return new Promise((resolve) => {
+    if (window.google?.accounts?.oauth2) {
+      resolve()
+      return
+    }
+    const check = setInterval(() => {
+      if (window.google?.accounts?.oauth2) {
+        clearInterval(check)
+        resolve()
+      }
+    }, 100)
+    setTimeout(() => {
+      clearInterval(check)
+      resolve()
+    }, 10000)
   })
 }
 
-/** Get current access token (assumes signed in) */
+/** Get current access token (throws if not signed in) */
 function getAccessToken(): string {
-  const auth = window.gapi?.auth2?.getAuthInstance()
-  if (!auth?.isSignedIn?.get()) throw new Error('Not signed in')
-  return auth.currentUser.get().getAuthResponse().access_token
+  const t = accessToken
+  if (!t) throw new Error('Not signed in')
+  return t
 }
 
-/** Sign in with Google */
-export async function signInGoogle(): Promise<boolean> {
-  if (!window.gapi?.auth2) throw new Error('Google API not initialized')
-  const auth = window.gapi.auth2.getAuthInstance()
-  await auth.signIn()
-  return auth.isSignedIn.get()
+/** Sign in with Google using GIS Token Client */
+export function signInGoogle(): Promise<boolean> {
+  const clientId = getEnv('VITE_GOOGLE_CLIENT_ID')
+  if (!window.google?.accounts?.oauth2) {
+    return Promise.reject(new Error('Google Identity Services script not loaded. Refresh the page.'))
+  }
+  return new Promise((resolve, reject) => {
+    const client = window.google!.accounts.oauth2.initTokenClient({
+      client_id: clientId,
+      scope: SCOPE,
+      callback: (response: TokenResponse) => {
+        if (response.error) {
+          reject(new Error(response.error))
+          return
+        }
+        if (response.access_token) {
+          persistToken(response.access_token)
+          resolve(true)
+        } else {
+          resolve(false)
+        }
+      },
+    })
+    client.requestAccessToken()
+  })
 }
 
-/** Sign out */
-export async function signOutGoogle(): Promise<void> {
-  if (!window.gapi?.auth2) return
-  await window.gapi.auth2.getAuthInstance().signOut()
+/** Sign out (clear token) */
+export function signOutGoogle(): Promise<void> {
+  persistToken(null)
+  return Promise.resolve()
 }
 
-/** Check if user is signed in */
+/** Check if user is signed in (we have a token) */
 export function isSignedIn(): boolean {
-  return window.gapi?.auth2?.getAuthInstance()?.isSignedIn?.get() ?? false
+  return !!accessToken
 }
 
 /** Get spreadsheet ID from env */
@@ -161,79 +174,97 @@ export function getSpreadsheetId(): string {
   return getEnv('VITE_GOOGLE_SHEET_ID')
 }
 
+/** Call Sheets API with Bearer token */
+async function sheetsFetch(
+  path: string,
+  options: RequestInit & { method?: 'GET' | 'POST' | 'PUT' } = {}
+): Promise<Response> {
+  const token = getAccessToken()
+  const url = `${SHEETS_BASE}/${path}`
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+  return res
+}
+
 /** Fetch all tasks from sheet (range Tasks!A2:L, skip header) */
 export async function fetchTasksFromSheet(): Promise<Task[]> {
-  const gapi = window.gapi
-  if (!gapi?.client?.sheets) throw new Error('Sheets API not ready')
-  getAccessToken()
   const sheetId = getSpreadsheetId()
-  const response = await gapi.client.sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range: `${SHEET_NAME}!A2:L`,
-  })
-  const values = response.result.values as string[][] | undefined
+  const range = encodeURIComponent(`${SHEET_NAME}!A2:L`)
+  const res = await sheetsFetch(`${sheetId}/values/${range}`)
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: { message?: string } }).error?.message ?? `Sheets API ${res.status}`)
+  }
+  const data = (await res.json()) as { values?: string[][] }
+  const values = data.values
   if (!values?.length) return []
   return values.map((row) => rowToTask(row))
 }
 
 /** Append one task row to sheet */
 export async function appendTaskToSheet(task: Task): Promise<void> {
-  const gapi = window.gapi
-  if (!gapi?.client?.sheets) throw new Error('Sheets API not ready')
-  getAccessToken()
   const sheetId = getSpreadsheetId()
-  await gapi.client.sheets.spreadsheets.values.append({
-    spreadsheetId: sheetId,
-    range: `${SHEET_NAME}!A2:L`,
-    valueInputOption: 'USER_ENTERED',
-    resource: { values: [taskToRow(task)] },
+  const range = encodeURIComponent(`${SHEET_NAME}!A2:L`)
+  const res = await sheetsFetch(`${sheetId}/values/${range}:append?valueInputOption=USER_ENTERED`, {
+    method: 'POST',
+    body: JSON.stringify({ values: [taskToRow(task)] }),
   })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: { message?: string } }).error?.message ?? `Sheets API ${res.status}`)
+  }
 }
 
 /** Update a single task by row index (1-based, row 2 = first data row) */
 export async function updateTaskRowInSheet(rowIndex: number, task: Task): Promise<void> {
-  const gapi = window.gapi
-  if (!gapi?.client?.sheets) throw new Error('Sheets API not ready')
-  getAccessToken()
   const sheetId = getSpreadsheetId()
-  const range = `${SHEET_NAME}!A${rowIndex}:L${rowIndex}`
-  await gapi.client.sheets.spreadsheets.values.update({
-    spreadsheetId: sheetId,
-    range,
-    valueInputOption: 'USER_ENTERED',
-    resource: { values: [taskToRow(task)] },
+  const range = encodeURIComponent(`${SHEET_NAME}!A${rowIndex}:L${rowIndex}`)
+  const res = await sheetsFetch(`${sheetId}/values/${range}?valueInputOption=USER_ENTERED`, {
+    method: 'PUT',
+    body: JSON.stringify({ values: [taskToRow(task)] }),
   })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: { message?: string } }).error?.message ?? `Sheets API ${res.status}`)
+  }
 }
 
-/** Batch update multiple rows (minimize API calls). data: array of { rowIndex, task } */
+/** Batch update multiple rows */
 export async function batchUpdateTasksInSheet(
   data: Array<{ rowIndex: number; task: Task }>
 ): Promise<void> {
   if (!data.length) return
-  const gapi = window.gapi
-  if (!gapi?.client?.sheets) throw new Error('Sheets API not ready')
-  getAccessToken()
   const sheetId = getSpreadsheetId()
-  await gapi.client.sheets.spreadsheets.values.batchUpdate({
-    spreadsheetId: sheetId,
-    resource: {
-      valueInputOption: 'USER_ENTERED',
-      data: data.map(({ rowIndex, task }) => ({
-        range: `${SHEET_NAME}!A${rowIndex}:L${rowIndex}`,
-        values: [taskToRow(task)],
-      })),
-    },
+  const body = {
+    valueInputOption: 'USER_ENTERED',
+    data: data.map(({ rowIndex, task }) => ({
+      range: `${SHEET_NAME}!A${rowIndex}:L${rowIndex}`,
+      values: [taskToRow(task)],
+    })),
+  }
+  const res = await sheetsFetch(`${sheetId}/values:batchUpdate`, {
+    method: 'POST',
+    body: JSON.stringify(body),
   })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: { message?: string } }).error?.message ?? `Sheets API ${res.status}`)
+  }
 }
 
-/** Delete a row by clearing it (optional; or mark status Deleted in your schema) */
+/** Clear a row in the sheet */
 export async function clearRowInSheet(rowIndex: number): Promise<void> {
-  const gapi = window.gapi
-  if (!gapi?.client?.sheets) throw new Error('Sheets API not ready')
-  getAccessToken()
   const sheetId = getSpreadsheetId()
-  await gapi.client.sheets.spreadsheets.values.clear({
-    spreadsheetId: sheetId,
-    range: `${SHEET_NAME}!A${rowIndex}:L${rowIndex}`,
-  })
+  const range = encodeURIComponent(`${SHEET_NAME}!A${rowIndex}:L${rowIndex}`)
+  const res = await sheetsFetch(`${sheetId}/values/${range}:clear`, { method: 'POST' })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error((err as { error?: { message?: string } }).error?.message ?? `Sheets API ${res.status}`)
+  }
 }

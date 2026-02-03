@@ -39,11 +39,6 @@ export function useGoogleSheets() {
         setLoading(false)
         return
       }
-      if (!window.gapi) {
-        await loadFromCache()
-        setLoading(false)
-        return
-      }
       if (!isSignedIn()) {
         await loadFromCache()
         setLoading(false)
@@ -73,7 +68,7 @@ export function useGoogleSheets() {
 
   const syncTaskToSheet = useCallback(
     async (taskId: string, task: import('@/types/task').Task) => {
-      if (!SHEET_ID || !window.gapi || !isSignedIn()) return
+      if (!SHEET_ID || !isSignedIn()) return
       try {
         const rowIndex = getRowIndexByTaskId(taskId)
         if (rowIndex >= 2) {
