@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+# Vite inlines VITE_* vars into the client bundle (by design). Netlify secrets
+# scanning would otherwise fail the build; these keys are allowed in output.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_GOOGLE_API_KEY,VITE_GOOGLE_CLIENT_ID,VITE_GOOGLE_SHEET_ID"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
