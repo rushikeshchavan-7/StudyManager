@@ -13,11 +13,9 @@ export function Sidebar() {
   const { sidebarOpen } = useUIStore()
   const location = useLocation()
 
-  if (!sidebarOpen) return null
-
   return (
     <aside
-      className="w-56 shrink-0 border-r border-[var(--border)] bg-[var(--bg-secondary)] p-4"
+      className={`hidden shrink-0 flex-col border-r border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-4 ${sidebarOpen ? 'lg:flex' : ''} w-56`}
       aria-label="Main navigation"
     >
       <nav className="flex flex-col gap-1">
@@ -27,9 +25,9 @@ export function Sidebar() {
             <Link
               key={path}
               to={path}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex min-h-[44px] items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-[var(--bg-tertiary)] text-[var(--accent)]'
+                  ? 'bg-[var(--accent-muted)] text-[var(--accent)]'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]'
               }`}
               aria-current={isActive ? 'page' : undefined}

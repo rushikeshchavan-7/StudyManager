@@ -15,13 +15,13 @@ export function SettingsPage() {
   } = useUIStore()
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4">
-      <h1 className="text-xl font-semibold text-[var(--text-primary)]">Settings</h1>
+    <div className="flex flex-1 flex-col gap-6 px-4 py-5 sm:px-6 sm:py-6">
+      <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Settings</h1>
 
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
-        <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">Appearance</h2>
-        <div className="flex items-center justify-between">
-          <label htmlFor="dark-mode" className="text-sm text-[var(--text-primary)]">
+      <section className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
+        <h2 className="mb-4 text-sm font-semibold text-[var(--text-secondary)]">Appearance</h2>
+        <div className="flex min-h-[44px] items-center justify-between gap-4">
+          <label htmlFor="dark-mode" className="text-[var(--text-primary)]">
             Dark mode
           </label>
           <Switch.Root
@@ -35,8 +35,8 @@ export function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
-        <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">Study goals</h2>
+      <section className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
+        <h2 className="mb-4 text-sm font-semibold text-[var(--text-secondary)]">Study goals</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Daily task goal"
@@ -55,11 +55,11 @@ export function SettingsPage() {
         </div>
       </section>
 
-      <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
-        <h2 className="mb-3 text-sm font-semibold text-[var(--text-secondary)]">Focus mode</h2>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label htmlFor="hide-done" className="text-sm text-[var(--text-primary)]">
+      <section className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5">
+        <h2 className="mb-4 text-sm font-semibold text-[var(--text-secondary)]">Focus mode</h2>
+        <div className="space-y-1">
+          <div className="flex min-h-[44px] items-center justify-between gap-4">
+            <label htmlFor="hide-done" className="text-[var(--text-primary)]">
               Hide completed tasks
             </label>
             <Switch.Root
@@ -71,8 +71,8 @@ export function SettingsPage() {
               <Switch.Thumb className="block h-5 w-5 translate-x-0.5 rounded-full bg-white transition-transform data-[state=checked]:translate-x-[22px]" />
             </Switch.Root>
           </div>
-          <div className="flex items-center justify-between">
-            <label htmlFor="high-only" className="text-sm text-[var(--text-primary)]">
+          <div className="flex min-h-[44px] items-center justify-between gap-4">
+            <label htmlFor="high-only" className="text-[var(--text-primary)]">
               Show only high priority
             </label>
             <Switch.Root

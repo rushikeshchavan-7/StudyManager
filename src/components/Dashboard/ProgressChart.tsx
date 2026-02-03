@@ -12,13 +12,13 @@ export function ProgressChart({ completed, total, label }: ProgressChartProps) {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-5 shadow-[var(--shadow-sm)]">
       {label && (
-        <p className="mb-2 text-sm font-medium text-[var(--text-secondary)]">{label}</p>
+        <p className="mb-3 text-sm font-medium text-[var(--text-secondary)]">{label}</p>
       )}
-      <div className="h-3 w-full overflow-hidden rounded-full bg-[var(--bg-tertiary)]">
+      <div className="h-2.5 w-full overflow-hidden rounded-[var(--radius-full)] bg-[var(--bg-tertiary)]">
         <div
-          className="h-full rounded-full bg-[var(--success)] transition-all duration-500"
+          className="h-full rounded-[var(--radius-full)] bg-[var(--success)] transition-all duration-500"
           style={{ width: `${pct}%` }}
           role="progressbar"
           aria-valuenow={pct}

@@ -15,11 +15,11 @@ export function KanbanColumn({ status, tasks, onEditTask }: KanbanColumnProps) {
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-w-[280px] flex-1 flex-col rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-3 transition-colors ${isOver ? 'ring-2 ring-[var(--accent)]' : ''}`}
+      className={`flex min-w-[260px] flex-1 flex-col rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-3.5 transition-colors sm:min-w-[280px] ${isOver ? 'ring-2 ring-[var(--accent)] ring-offset-2' : ''}`}
     >
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+      <h2 className="mb-3 text-sm font-semibold tracking-wide text-[var(--text-secondary)]">
         {status}
-        <span className="ml-2 rounded-full bg-[var(--bg-tertiary)] px-2 py-0.5 text-xs">
+        <span className="ml-2 rounded-[var(--radius-full)] bg-[var(--bg-tertiary)] px-2 py-0.5 text-xs">
           {tasks.length}
         </span>
       </h2>

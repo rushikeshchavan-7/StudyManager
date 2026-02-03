@@ -46,8 +46,8 @@ export function DashboardPage() {
   }, [tasks])
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4">
-      <h1 className="text-xl font-semibold text-[var(--text-primary)]">Progress Dashboard</h1>
+    <div className="flex flex-1 flex-col gap-6 px-4 py-5 sm:px-6 sm:py-6">
+      <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Progress</h1>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard title="Completed today" value={stats.completedToday} icon={CheckCircle} />
         <StatsCard title="This week" value={stats.completedThisWeek} icon={Target} />

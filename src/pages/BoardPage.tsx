@@ -48,7 +48,7 @@ export function BoardPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col p-4">
+    <div className="flex flex-1 flex-col px-4 py-5 sm:px-6 sm:py-6">
       {viewMode === 'kanban' && <KanbanBoard tasks={filtered} onEditTask={handleEdit} />}
       {viewMode === 'list' && <ListView tasks={filtered} onEditTask={handleEdit} />}
       {viewMode === 'calendar' && <CalendarView tasks={filtered} onEditTask={handleEdit} />}

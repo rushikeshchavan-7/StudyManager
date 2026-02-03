@@ -50,7 +50,7 @@ export function CalendarView({ tasks, onEditTask }: CalendarViewProps) {
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
   return (
-    <div className="flex flex-1 flex-col rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4">
+    <div className="flex flex-1 flex-col rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-4">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">
           {format(currentMonth, 'MMMM yyyy')}
@@ -82,7 +82,7 @@ export function CalendarView({ tasks, onEditTask }: CalendarViewProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--border)]">
+      <div className="grid grid-cols-7 gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--border-subtle)]">
         {weekDays.map((d) => (
           <div
             key={d}

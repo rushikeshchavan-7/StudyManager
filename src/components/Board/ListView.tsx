@@ -9,10 +9,10 @@ interface ListViewProps {
 
 export function ListView({ tasks, onEditTask }: ListViewProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
+    <div className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border-subtle)]">
       <table className="w-full text-left text-sm" role="table">
         <thead>
-          <tr className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+          <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
             <th className="px-4 py-3 font-medium text-[var(--text-secondary)]">Title</th>
             <th className="px-4 py-3 font-medium text-[var(--text-secondary)]">Status</th>
             <th className="px-4 py-3 font-medium text-[var(--text-secondary)]">Priority</th>
@@ -25,7 +25,7 @@ export function ListView({ tasks, onEditTask }: ListViewProps) {
           {tasks.map((task) => (
             <tr
               key={task.id}
-              className="cursor-pointer border-b border-[var(--border)] hover:bg-[var(--bg-secondary)]"
+              className="cursor-pointer border-b border-[var(--border-subtle)] hover:bg-[var(--bg-secondary)]"
               onClick={() => onEditTask(task)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {

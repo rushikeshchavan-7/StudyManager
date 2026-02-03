@@ -42,20 +42,20 @@ export function PomodoroTimer() {
   const s = secondsLeft % 60
 
   return (
-    <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-6">
-      <h2 className="mb-4 text-lg font-semibold text-[var(--text-primary)]">
+    <div className="rounded-[var(--radius-lg)] border border-[var(--border-subtle)] bg-[var(--bg-secondary)] p-6 shadow-[var(--shadow-sm)]">
+      <h2 className="mb-5 text-lg font-semibold text-[var(--text-primary)]">
         {isBreak ? 'Break' : 'Focus'}
       </h2>
       <div className="mx-auto flex max-w-xs flex-col items-center">
         <div
-          className="flex h-48 w-48 items-center justify-center rounded-full border-4 border-[var(--border)] bg-[var(--bg-tertiary)] text-4xl font-mono text-[var(--text-primary)]"
+          className="flex h-44 w-44 items-center justify-center rounded-full border-[3px] border-[var(--border-subtle)] bg-[var(--bg-tertiary)] text-4xl font-medium tabular-nums text-[var(--text-primary)] sm:h-48 sm:w-48"
           role="timer"
           aria-live="polite"
           aria-valuenow={secondsLeft}
         >
           {`${m}:${s.toString().padStart(2, '0')}`}
         </div>
-        <div className="mt-2 h-2 w-full max-w-[12rem] overflow-hidden rounded-full bg-[var(--border)]">
+        <div className="mt-3 h-1.5 w-full max-w-[12rem] overflow-hidden rounded-[var(--radius-full)] bg-[var(--border-subtle)]">
           <div
             className="h-full rounded-full bg-[var(--accent)] transition-all duration-1000"
             style={{ width: `${progressPct}%` }}

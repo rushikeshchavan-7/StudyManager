@@ -24,17 +24,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const base =
-      'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-colors focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 disabled:pointer-events-none'
+      'inline-flex items-center justify-center gap-2 font-medium rounded-[var(--radius)] transition-colors focus-visible:outline focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent)] disabled:opacity-50 disabled:pointer-events-none min-h-[44px] active:opacity-90'
     const variants = {
       primary: 'bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]',
-      secondary: 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-[var(--border)]',
+      secondary: 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] hover:bg-[var(--bg-secondary)]',
       ghost: 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)]',
       danger: 'bg-[var(--error)] text-white hover:opacity-90',
     }
     const sizes = {
-      sm: 'px-3 py-1.5 text-sm',
-      md: 'px-4 py-2 text-sm',
-      lg: 'px-6 py-3 text-base',
+      sm: 'px-4 py-2 text-sm rounded-[var(--radius-sm)]',
+      md: 'px-5 py-2.5 text-base rounded-[var(--radius)]',
+      lg: 'px-6 py-3 text-base rounded-[var(--radius)]',
     }
 
     return (

@@ -28,13 +28,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={id}
             className={`
-              w-full rounded-lg border bg-[var(--bg-primary)] px-3 py-2 text-[var(--text-primary)]
+              min-h-[44px] w-full rounded-[var(--radius-sm)] border bg-[var(--bg-primary)] px-3 py-2.5 text-[var(--text-primary)] text-base
               placeholder:text-[var(--text-muted)]
-              focus:border-[var(--accent)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]
+              focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-muted)]
               disabled:opacity-50
               ${leftIcon ? 'pl-10' : ''}
               ${rightIcon ? 'pr-10' : ''}
-              ${error ? 'border-[var(--error)]' : 'border-[var(--border)]'}
+              ${error ? 'border-[var(--error)]' : 'border-[var(--border-subtle)]'}
               ${className}
             `}
             aria-invalid={!!error}

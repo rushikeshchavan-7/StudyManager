@@ -39,9 +39,9 @@ export function TaskCard({ task, onEdit, isSortable = true }: TaskCardProps) {
       ref={setNodeRef}
       style={style}
       className={`
-        group rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] p-3 shadow-sm
-        hover:border-[var(--accent)]/50
-        ${isDragging ? 'opacity-50 shadow-lg' : ''}
+        group rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3.5 shadow-[var(--shadow-sm)]
+        hover:border-[var(--border)] hover:shadow-[var(--shadow)]
+        ${isDragging ? 'opacity-60 shadow-[var(--shadow-lg)]' : ''}
       `}
       role="button"
       tabIndex={0}
@@ -58,7 +58,7 @@ export function TaskCard({ task, onEdit, isSortable = true }: TaskCardProps) {
         {isSortable && (
           <button
             type="button"
-            className="touch-none cursor-grab rounded p-0.5 text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] active:cursor-grabbing"
+            className="touch-none cursor-grab rounded-[var(--radius-sm)] p-1.5 text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] active:cursor-grabbing"
             aria-label="Drag to reorder"
             {...attributes}
             {...listeners}

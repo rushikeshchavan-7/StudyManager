@@ -35,16 +35,16 @@ export function Select({
       <SelectPrimitive.Root value={value ?? ''} onValueChange={onValueChange} disabled={disabled}>
         <SelectPrimitive.Trigger
           aria-label={ariaLabel ?? label}
-          className="inline-flex h-10 w-full items-center justify-between gap-2 rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] data-[placeholder]:text-[var(--text-muted)] disabled:opacity-50"
+          className="inline-flex min-h-[44px] w-full items-center justify-between gap-2 rounded-[var(--radius-sm)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 py-2.5 text-base text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-muted)] data-[placeholder]:text-[var(--text-muted)] disabled:opacity-50"
         >
           <SelectPrimitive.Value placeholder={placeholder} />
           <SelectPrimitive.Icon>
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className="h-5 w-5" />
           </SelectPrimitive.Icon>
         </SelectPrimitive.Trigger>
         <SelectPrimitive.Portal>
           <SelectPrimitive.Content
-            className="z-[100] overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-primary)] shadow-lg"
+            className="z-[100] overflow-hidden rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] shadow-[var(--shadow-lg)]"
             position="popper"
             sideOffset={4}
           >
@@ -53,7 +53,7 @@ export function Select({
                 <SelectPrimitive.Item
                   key={opt.value}
                   value={opt.value}
-                  className="relative flex cursor-pointer select-none items-center rounded-md py-2 pl-8 pr-2 text-sm outline-none data-[highlighted]:bg-[var(--bg-tertiary)]"
+                  className="relative flex min-h-[44px] cursor-pointer select-none items-center rounded-[var(--radius-sm)] py-2 pl-8 pr-2 text-base outline-none data-[highlighted]:bg-[var(--bg-tertiary)]"
                 >
                   <SelectPrimitive.ItemText>{opt.label}</SelectPrimitive.ItemText>
                   <SelectPrimitive.ItemIndicator className="absolute left-2">

@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Navbar } from '@/components/Layout/Navbar'
 import { Sidebar } from '@/components/Layout/Sidebar'
+import { BottomNav } from '@/components/Layout/BottomNav'
 import { Toast } from '@/components/Common/Toast'
 import { TaskQuickCreate } from '@/components/Task/TaskQuickCreate'
 import { BoardPage } from '@/pages/BoardPage'
@@ -30,11 +31,11 @@ function AppLayout() {
   }, [loadFromCache])
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--bg-primary)]">
+    <div className="flex min-h-screen min-h-dvh flex-col bg-[var(--bg-primary)]">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 min-h-0">
         <Sidebar />
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto pb-safe">
           <Routes>
             <Route path="/" element={<BoardPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
@@ -43,6 +44,7 @@ function AppLayout() {
           </Routes>
         </main>
       </div>
+      <BottomNav />
       <TaskQuickCreate />
       <Toast />
     </div>
