@@ -8,6 +8,7 @@ import {
   fetchTasksFromSheet,
   appendTaskToSheet,
   updateTaskRowInSheet,
+  clearRowInSheet,
   isSignedIn,
 } from '@/lib/googleSheetsClient'
 import { useTaskStore } from '@/store/taskStore'
@@ -44,16 +45,12 @@ export function useGoogleSheets() {
         setLoading(false)
         return
       }
-      const sheetTasks = await fetchTasksFromSheet()
+      const { tasks: sheetTasks, rowIndices } = await fetchTasksFromSheet()
       setTasks(sheetTasks)
-      const rowIndices: Record<string, number> = {}
-      sheetTasks.forEach((t, i) => {
-        rowIndices[t.id] = i + 2
-      })
       setRowIndices(rowIndices)
       await db.tasks.clear()
       if (sheetTasks.length) {
-        const withRowIndex = sheetTasks.map((t, i) => ({ ...t, _rowIndex: i + 2 }))
+        const withRowIndex = sheetTasks.map((t) => ({ ...t, _rowIndex: rowIndices[t.id] ?? 0 }))
         await db.tasks.bulkAdd(withRowIndex)
       }
       setLastSync(new Date().toISOString())
@@ -75,16 +72,25 @@ export function useGoogleSheets() {
           await updateTaskRowInSheet(rowIndex, task)
         } else {
           await appendTaskToSheet(task)
-          const currentTasks = useTaskStore.getState().tasks
-          const newRow = currentTasks.length + 1
-          setRowIndexForTask(taskId, newRow)
+          await loadTasks()
         }
       } catch (err) {
         console.error('Google Sheets sync failed:', err)
         throw err
       }
     },
-    [getRowIndexByTaskId, setRowIndexForTask]
+    [getRowIndexByTaskId, loadTasks]
+  )
+
+  const deleteTaskFromSheet = useCallback(
+    async (taskId: string) => {
+      if (!SHEET_ID || !isSignedIn()) return
+      const rowIndex = getRowIndexByTaskId(taskId)
+      if (rowIndex >= 2) {
+        await clearRowInSheet(rowIndex)
+      }
+    },
+    [getRowIndexByTaskId]
   )
 
   useEffect(() => {
@@ -108,5 +114,17 @@ export function useGoogleSheets() {
     }
   }, [setOffline])
 
-  return { loadTasks, syncTaskToSheet, isReady: !!SHEET_ID }
+  const clearTasksForSignOut = useCallback(() => {
+    setTasks([])
+    setRowIndices({})
+    db.tasks.clear().catch(() => {})
+  }, [setTasks, setRowIndices])
+
+  return {
+    loadTasks,
+    syncTaskToSheet,
+    deleteTaskFromSheet,
+    clearTasksForSignOut,
+    isReady: !!SHEET_ID,
+  }
 }

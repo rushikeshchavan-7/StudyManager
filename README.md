@@ -63,9 +63,9 @@ cp .env.example .env
    `http://localhost:5173`, `https://yourdomain.netlify.app`
 6. Add **Authorized redirect URIs**: same as above
 7. Create an **API Key** (optional, for unauthenticated quota)
-8. Create a Google Sheet and set its name to **Tasks**. Add header row in the first row:
+8. Create a Google Sheet and set its name to **Tasks**. Add header row in the first row (include **Owner** so each user sees only their own tasks):
 
-   | Task ID | Title | Description | Status | Priority | Due Date | Tags | Estimated Hours | Actual Hours | Created At | Updated At | Completed At |
+   | Task ID | Title | Description | Status | Priority | Due Date | Tags | Estimated Hours | Actual Hours | Created At | Updated At | Completed At | Owner |
 
 9. Copy the Sheet ID from the URL:  
    `https://docs.google.com/spreadsheets/d/<SHEET_ID>/edit`

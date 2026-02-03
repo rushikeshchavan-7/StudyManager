@@ -39,7 +39,7 @@ export const STORAGE_KEYS = {
   POMODORO_SETTINGS: 'study_manager_pomodoro_settings',
 } as const
 
-/** Default sheet header row */
+/** Default sheet header row (column M = Owner for per-user tasks) */
 export const SHEET_HEADER_ROW: string[] = [
   'Task ID',
   'Title',
@@ -53,6 +53,7 @@ export const SHEET_HEADER_ROW: string[] = [
   'Created At',
   'Updated At',
   'Completed At',
+  'Owner',
 ]
 
 /** Task templates for quick create */

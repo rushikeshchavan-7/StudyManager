@@ -26,7 +26,7 @@ export function Navbar() {
   } = useUIStore()
   const { filter, setFilter } = useFilterStore()
   const { lastSync, isOffline, googleSignedIn, setGoogleSignedIn } = useTaskStore()
-  const { loadTasks } = useGoogleSheets()
+  const { loadTasks, clearTasksForSignOut } = useGoogleSheets()
   const [signingIn, setSigningIn] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -81,9 +81,11 @@ export function Navbar() {
             onClick={async () => {
               try {
                 await signOutGoogle()
+                clearTasksForSignOut()
                 setGoogleSignedIn(false)
                 toast.success('Signed out')
               } catch {
+                clearTasksForSignOut()
                 setGoogleSignedIn(false)
               }
             }}

@@ -8,8 +8,10 @@
 import { SHEET_COLUMNS, SHEET_NAME } from '@/utils/constants'
 import type { Task } from '@/types/task'
 
-const SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+const SCOPE =
+  'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email'
 const SHEETS_BASE = 'https://sheets.googleapis.com/v4/spreadsheets'
+const USERINFO_URL = 'https://www.googleapis.com/oauth2/v2/userinfo'
 
 /** GIS token client callback response */
 interface TokenResponse {
@@ -44,6 +46,9 @@ function getEnv(key: string): string {
 /** In-memory and sessionStorage token (GIS does not provide refresh in token model; user re-signs when expired) */
 let accessToken: string | null = null
 const TOKEN_KEY = 'study_manager_google_token'
+const USER_EMAIL_KEY = 'study_manager_google_user_email'
+
+let currentUserEmail: string | null = null
 
 function persistToken(token: string | null): void {
   accessToken = token
@@ -53,15 +58,53 @@ function persistToken(token: string | null): void {
   }
 }
 
+function persistUserEmail(email: string | null): void {
+  currentUserEmail = email
+  if (typeof sessionStorage !== 'undefined') {
+    if (email) sessionStorage.setItem(USER_EMAIL_KEY, email)
+    else sessionStorage.removeItem(USER_EMAIL_KEY)
+  }
+}
+
 function loadStoredToken(): void {
   if (typeof sessionStorage !== 'undefined') {
     const stored = sessionStorage.getItem(TOKEN_KEY)
     if (stored) accessToken = stored
+    const emailStored = sessionStorage.getItem(USER_EMAIL_KEY)
+    if (emailStored) currentUserEmail = emailStored
   }
 }
 
-/** Convert Task to sheet row (array of 12 strings) */
-export function taskToRow(task: Task): string[] {
+/** Column index for Owner (user email) in sheet - column M */
+const OWNER_COLUMN_INDEX = 12
+
+/** Fetch current user email from Google userinfo (uses access token). */
+async function fetchUserInfo(): Promise<{ email: string }> {
+  const token = getAccessToken()
+  const res = await fetch(USERINFO_URL, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error('Failed to load user info')
+  const data = (await res.json()) as { email?: string }
+  if (!data.email) throw new Error('User email not available')
+  return { email: data.email }
+}
+
+/** Get current user email (cached after sign-in; fetches once if we have token but no email). */
+export async function getCurrentUserEmail(): Promise<string | null> {
+  if (!accessToken) return null
+  if (currentUserEmail) return currentUserEmail
+  try {
+    const { email } = await fetchUserInfo()
+    persistUserEmail(email)
+    return email
+  } catch {
+    return null
+  }
+}
+
+/** Convert Task to sheet row (array of 13 strings: 12 task columns + Owner). */
+export function taskToRow(task: Task, ownerEmail: string): string[] {
   return [
     task.id,
     task.title,
@@ -75,6 +118,7 @@ export function taskToRow(task: Task): string[] {
     task.createdAt,
     task.updatedAt,
     task.completedAt ?? '',
+    ownerEmail,
   ]
 }
 
@@ -148,6 +192,9 @@ export function signInGoogle(): Promise<boolean> {
         }
         if (response.access_token) {
           persistToken(response.access_token)
+          fetchUserInfo()
+            .then(({ email }) => persistUserEmail(email))
+            .catch(() => {})
           resolve(true)
         } else {
           resolve(false)
@@ -158,9 +205,10 @@ export function signInGoogle(): Promise<boolean> {
   })
 }
 
-/** Sign out (clear token) */
+/** Sign out (clear token and user email) */
 export function signOutGoogle(): Promise<void> {
   persistToken(null)
+  persistUserEmail(null)
   return Promise.resolve()
 }
 
@@ -192,10 +240,16 @@ async function sheetsFetch(
   return res
 }
 
-/** Fetch all tasks from sheet (range Tasks!A2:L, skip header) */
-export async function fetchTasksFromSheet(): Promise<Task[]> {
+/** Fetch tasks from sheet for the current user only (range Tasks!A2:M). Owner in column M. */
+export async function fetchTasksFromSheet(): Promise<{
+  tasks: Task[]
+  rowIndices: Record<string, number>
+}> {
+  const ownerEmail = await getCurrentUserEmail()
+  if (!ownerEmail?.trim()) return { tasks: [], rowIndices: {} }
+
   const sheetId = getSpreadsheetId()
-  const range = encodeURIComponent(`${SHEET_NAME}!A2:L`)
+  const range = encodeURIComponent(`${SHEET_NAME}!A2:M`)
   const res = await sheetsFetch(`${sheetId}/values/${range}`)
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
@@ -203,17 +257,32 @@ export async function fetchTasksFromSheet(): Promise<Task[]> {
   }
   const data = (await res.json()) as { values?: string[][] }
   const values = data.values
-  if (!values?.length) return []
-  return values.map((row) => rowToTask(row))
+  if (!values?.length) return { tasks: [], rowIndices: {} }
+  const ownerTrimmed = ownerEmail.trim()
+  const withIndices = values
+    .map((row, i) => ({ task: rowToTask(row), rowIndex: i + 2, row }))
+    .filter(
+      ({ task, row }) =>
+        (task.id ?? '').trim() !== '' &&
+        (row[OWNER_COLUMN_INDEX] ?? '').trim() === ownerTrimmed
+    )
+  const tasks = withIndices.map((r) => r.task)
+  const rowIndices: Record<string, number> = {}
+  withIndices.forEach(({ task, rowIndex }) => {
+    rowIndices[task.id] = rowIndex
+  })
+  return { tasks, rowIndices }
 }
 
-/** Append one task row to sheet */
+/** Append one task row to sheet (with current user as owner in column M) */
 export async function appendTaskToSheet(task: Task): Promise<void> {
+  const ownerEmail = await getCurrentUserEmail()
+  if (!ownerEmail?.trim()) throw new Error('Not signed in or user email not available')
   const sheetId = getSpreadsheetId()
-  const range = encodeURIComponent(`${SHEET_NAME}!A2:L`)
+  const range = encodeURIComponent(`${SHEET_NAME}!A2:M`)
   const res = await sheetsFetch(`${sheetId}/values/${range}:append?valueInputOption=USER_ENTERED`, {
     method: 'POST',
-    body: JSON.stringify({ values: [taskToRow(task)] }),
+    body: JSON.stringify({ values: [taskToRow(task, ownerEmail.trim())] }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
@@ -221,13 +290,15 @@ export async function appendTaskToSheet(task: Task): Promise<void> {
   }
 }
 
-/** Update a single task by row index (1-based, row 2 = first data row) */
+/** Update a single task by row index (1-based, row 2 = first data row). Keeps owner in column M. */
 export async function updateTaskRowInSheet(rowIndex: number, task: Task): Promise<void> {
+  const ownerEmail = await getCurrentUserEmail()
+  if (!ownerEmail?.trim()) throw new Error('Not signed in or user email not available')
   const sheetId = getSpreadsheetId()
-  const range = encodeURIComponent(`${SHEET_NAME}!A${rowIndex}:L${rowIndex}`)
+  const range = encodeURIComponent(`${SHEET_NAME}!A${rowIndex}:M${rowIndex}`)
   const res = await sheetsFetch(`${sheetId}/values/${range}?valueInputOption=USER_ENTERED`, {
     method: 'PUT',
-    body: JSON.stringify({ values: [taskToRow(task)] }),
+    body: JSON.stringify({ values: [taskToRow(task, ownerEmail.trim())] }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
@@ -235,17 +306,19 @@ export async function updateTaskRowInSheet(rowIndex: number, task: Task): Promis
   }
 }
 
-/** Batch update multiple rows */
+/** Batch update multiple rows (owner in column M) */
 export async function batchUpdateTasksInSheet(
   data: Array<{ rowIndex: number; task: Task }>
 ): Promise<void> {
   if (!data.length) return
+  const ownerEmail = await getCurrentUserEmail()
+  if (!ownerEmail?.trim()) throw new Error('Not signed in or user email not available')
   const sheetId = getSpreadsheetId()
   const body = {
     valueInputOption: 'USER_ENTERED',
     data: data.map(({ rowIndex, task }) => ({
-      range: `${SHEET_NAME}!A${rowIndex}:L${rowIndex}`,
-      values: [taskToRow(task)],
+      range: `${SHEET_NAME}!A${rowIndex}:M${rowIndex}`,
+      values: [taskToRow(task, ownerEmail.trim())],
     })),
   }
   const res = await sheetsFetch(`${sheetId}/values:batchUpdate`, {
@@ -258,10 +331,10 @@ export async function batchUpdateTasksInSheet(
   }
 }
 
-/** Clear a row in the sheet */
+/** Clear a row in the sheet (range A:M) */
 export async function clearRowInSheet(rowIndex: number): Promise<void> {
   const sheetId = getSpreadsheetId()
-  const range = encodeURIComponent(`${SHEET_NAME}!A${rowIndex}:L${rowIndex}`)
+  const range = encodeURIComponent(`${SHEET_NAME}!A${rowIndex}:M${rowIndex}`)
   const res = await sheetsFetch(`${sheetId}/values/${range}:clear`, { method: 'POST' })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))

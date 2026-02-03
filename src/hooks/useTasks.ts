@@ -19,7 +19,7 @@ export function useTasks() {
     error,
   } = useTaskStore()
 
-  const { syncTaskToSheet } = useGoogleSheets()
+  const { syncTaskToSheet, deleteTaskFromSheet } = useGoogleSheets()
 
   const createTask = useCallback(
     async (input: Partial<Task>) => {
@@ -51,9 +51,14 @@ export function useTasks() {
 
   const removeTask = useCallback(
     async (id: string) => {
+      try {
+        await deleteTaskFromSheet(id)
+      } catch {
+        // Task will be removed locally; sheet sync may retry when online/signed in
+      }
       return deleteTask(id)
     },
-    [deleteTask]
+    [deleteTask, deleteTaskFromSheet]
   )
 
   const moveTask = useCallback(

@@ -110,7 +110,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   deleteTask: async (id) => {
     const exists = get().tasks.some((t) => t.id === id)
     if (!exists) return false
-    set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }))
+    const { [id]: _, ...restIndices } = get().taskIdToRowIndex
+    set((s) => ({
+      tasks: s.tasks.filter((t) => t.id !== id),
+      taskIdToRowIndex: restIndices,
+    }))
     await get().persistToCache(get().tasks)
     return true
   },
