@@ -143,25 +143,7 @@ All routes go to `index.html` so the React app can handle them. This is set in `
 | `Ctrl/Cmd + D` | Toggle dark mode |
 | `Escape` | Close modals / clear search focus |
 
-## Project structure
 
-```
-src/
-  components/
-    Common/       # Button, Input, Select, Modal, Toast
-    Layout/       # Navbar, Sidebar
-    Task/         # TaskCard, TaskModal, TaskQuickCreate
-    Board/        # KanbanBoard, KanbanColumn, ListView
-    Dashboard/    # StatsCard, ProgressChart, UpcomingDeadlines
-    Timer/        # PomodoroTimer, TimeTracker
-  hooks/          # useTasks, useFilters, useGoogleSheets, useKeyboardShortcuts, useLocalStorage
-  lib/            # googleSheetsClient, taskParser, dateUtils, db (Dexie), taskSchema
-  store/          # taskStore, uiStore, filterStore
-  types/          # task, filter
-  utils/          # constants
-  pages/          # BoardPage, DashboardPage, TimerPage, SettingsPage
-  App.tsx, main.tsx
-```
 
 ## Troubleshooting
 
@@ -170,13 +152,5 @@ src/
 - **Offline not persisting**: IndexedDB must be enabled; private/incognito may restrict it.
 - **Build fails**: Run `npm run build` locally; fix any TypeScript or lint errors.
 
-## Contributing
 
-1. Fork the repo and create a feature branch.
-2. Follow existing code style (TypeScript strict, no `any`).
-3. Add tests for critical logic if applicable.
-4. Open a pull request with a short description of changes.
 
-## License
-
-MIT (or your chosen license).
