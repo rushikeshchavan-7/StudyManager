@@ -15,9 +15,12 @@ A production-ready study and task management app with Kanban board, Google Sheet
 - **Dark mode**: Toggle with `Ctrl/Cmd+D`, persisted
 - **Keyboard shortcuts**: New task (K), Search (/), Dark mode (D), Escape to close modals
 
-## Screenshots
+## Intro
 
-_Add screenshots of the app here (e.g. Kanban view, Dashboard, Timer)._
+
+
+https://github.com/user-attachments/assets/3798a463-904c-4bf5-b727-c3478aaac139
+
 
 ## Tech stack
 
