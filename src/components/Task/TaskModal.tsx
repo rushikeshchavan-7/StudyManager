@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Modal } from '@/components/Common/Modal'
+import { ConfirmDialog } from '@/components/Common/ConfirmDialog'
 import { Button } from '@/components/Common/Button'
 import { Input } from '@/components/Common/Input'
 import { Select } from '@/components/Common/Select'
@@ -27,6 +28,7 @@ export function TaskModal({ open, onOpenChange, task, onSave, onCreate, onDelete
   const [actualHours, setActualHours] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   const isCreate = task === null
 
@@ -51,6 +53,11 @@ export function TaskModal({ open, onOpenChange, task, onSave, onCreate, onDelete
       setActualHours('')
     }
   }, [task, open])
+
+  // Reset delete confirm when task modal closes
+  useEffect(() => {
+    if (!open) setDeleteConfirmOpen(false)
+  }, [open])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -94,13 +101,17 @@ export function TaskModal({ open, onOpenChange, task, onSave, onCreate, onDelete
     }
   }
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    if (task && onDelete) setDeleteConfirmOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
     if (!task || !onDelete) return
-    if (!window.confirm('Delete this task?')) return
     setDeleting(true)
     try {
       await onDelete(task.id)
       toast.success('Task deleted')
+      setDeleteConfirmOpen(false)
       onOpenChange(false)
     } catch {
       toast.error('Failed to delete')
@@ -188,7 +199,7 @@ export function TaskModal({ open, onOpenChange, task, onSave, onCreate, onDelete
         <div className="flex justify-between gap-2 pt-2">
           <div>
             {!isCreate && onDelete && (
-              <Button variant="danger" type="button" onClick={handleDelete} isLoading={deleting}>
+              <Button variant="danger" type="button" onClick={handleDeleteClick} isLoading={deleting}>
                 Delete
               </Button>
             )}
@@ -203,6 +214,19 @@ export function TaskModal({ open, onOpenChange, task, onSave, onCreate, onDelete
           </div>
         </div>
       </form>
+      {!isCreate && onDelete && (
+        <ConfirmDialog
+          open={deleteConfirmOpen}
+          onOpenChange={setDeleteConfirmOpen}
+          title="Delete task?"
+          message="This task will be permanently deleted. This cannot be undone."
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          variant="danger"
+          onConfirm={handleDeleteConfirm}
+          isLoading={deleting}
+        />
+      )}
     </Modal>
   )
 }
