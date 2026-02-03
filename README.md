@@ -17,9 +17,8 @@ A production-ready study and task management app with Kanban board, Google Sheet
 
 ## Intro
 
+https://github.com/user-attachments/assets/4892120b-52b5-4faf-8f3b-1aff769f07ff
 
-
-https://github.com/user-attachments/assets/beb43426-f885-4bf6-a81b-ac2e9ab1a132
 
 
 
