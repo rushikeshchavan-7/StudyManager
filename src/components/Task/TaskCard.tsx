@@ -3,6 +3,8 @@ import { CSS } from '@dnd-kit/utilities'
 import { Calendar, Clock, Tag, GripVertical } from 'lucide-react'
 import type { Task } from '@/types/task'
 import { formatRelativeDate } from '@/lib/dateUtils'
+import { STATUS_COLORS_LIGHT, STATUS_COLORS_DARK } from '@/utils/constants'
+import { useUIStore } from '@/store/uiStore'
 
 interface TaskCardProps {
   task: Task
@@ -30,14 +32,19 @@ export function TaskCard({ task, onEdit, isSortable = true }: TaskCardProps) {
     disabled: !isSortable,
   })
 
+  const darkMode = useUIStore((s) => s.darkMode)
+  const statusBorder = (darkMode ? STATUS_COLORS_DARK : STATUS_COLORS_LIGHT)[task.status].border
   const style = transform
     ? { transform: CSS.Transform.toString(transform), transition }
-    : undefined
+    : {}
 
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{
+        ...style,
+        borderLeft: `3px solid ${statusBorder}`,
+      }}
       className={`
         group rounded-[var(--radius)] border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-3.5 shadow-[var(--shadow-sm)]
         hover:border-[var(--border)] hover:shadow-[var(--shadow)]

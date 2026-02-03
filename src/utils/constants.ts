@@ -6,6 +6,63 @@ import type { TaskPriority, TaskStatus } from '@/types/task'
 
 export const TASK_STATUSES: TaskStatus[] = ['To Do', 'In Progress', 'In Review', 'Done']
 
+/** Apple-style soft gradients and tints (light mode) */
+export const STATUS_COLORS_LIGHT: Record<
+  TaskStatus,
+  { gradient: string; tint: string; border: string }
+> = {
+  'To Do': {
+    gradient: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
+    tint: 'rgba(248, 250, 252, 0.85)',
+    border: '#cbd5e1',
+  },
+  'In Progress': {
+    gradient: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+    tint: 'rgba(239, 246, 255, 0.9)',
+    border: '#93c5fd',
+  },
+  'In Review': {
+    gradient: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+    tint: 'rgba(255, 251, 235, 0.9)',
+    border: '#fcd34d',
+  },
+  Done: {
+    gradient: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+    tint: 'rgba(236, 253, 245, 0.9)',
+    border: '#6ee7b7',
+  },
+}
+
+/** Dark mode: subtle tints and softer borders */
+export const STATUS_COLORS_DARK: Record<
+  TaskStatus,
+  { gradient: string; tint: string; border: string }
+> = {
+  'To Do': {
+    gradient: 'linear-gradient(135deg, #334155 0%, #475569 100%)',
+    tint: 'rgba(51, 65, 85, 0.4)',
+    border: '#64748b',
+  },
+  'In Progress': {
+    gradient: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 100%)',
+    tint: 'rgba(30, 58, 138, 0.35)',
+    border: '#60a5fa',
+  },
+  'In Review': {
+    gradient: 'linear-gradient(135deg, #422006 0%, #78350f 100%)',
+    tint: 'rgba(120, 53, 15, 0.3)',
+    border: '#fbbf24',
+  },
+  Done: {
+    gradient: 'linear-gradient(135deg, #064e3b 0%, #065f46 100%)',
+    tint: 'rgba(6, 78, 59, 0.35)',
+    border: '#34d399',
+  },
+}
+
+/** Status colors (use with darkMode to pick LIGHT or DARK) */
+export const STATUS_COLORS = STATUS_COLORS_LIGHT
+
 export const TASK_PRIORITIES: TaskPriority[] = ['Low', 'Medium', 'High', 'Urgent']
 
 /** Google Sheet column indices (0-based for array access) */
