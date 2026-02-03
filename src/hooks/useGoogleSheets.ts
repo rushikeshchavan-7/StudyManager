@@ -27,7 +27,6 @@ export function useGoogleSheets() {
     setGoogleSignedIn,
     loadFromCache,
     getRowIndexByTaskId,
-    setRowIndexForTask,
   } = useTaskStore()
 
   const loadTasks = useCallback(async () => {
