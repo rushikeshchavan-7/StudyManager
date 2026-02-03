@@ -80,7 +80,9 @@ export function TaskCard({ task, onEdit, isSortable = true }: TaskCardProps) {
               className={`h-2 w-2 shrink-0 rounded-full ${priorityColors[task.priority]}`}
               aria-hidden
             />
-            <h3 className="truncate font-medium text-[var(--text-primary)]">{task.title}</h3>
+            <h2 className="min-w-0 truncate text-sm font-medium text-[var(--text-primary)]">
+              {task.title}
+            </h2>
           </div>
           {task.description && (
             <p className="mt-1 line-clamp-2 text-sm text-[var(--text-secondary)]">
